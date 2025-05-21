@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MovieDetailsPage.css';
 import { useParams } from 'react-router-dom';
@@ -24,7 +24,7 @@ const MovieDetailsPage = () => {
     const dispatch = useDispatch();
     const { selectedMovie, loading, error, currentMood, watchlist } = useSelector((state) => state.movies);
     const isInWatchlist = watchlist.some(movie => movie.id === parseInt(id));
-    console.log(selectedMovie, "")
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     // const handleBack = useCallback(() => {
     //     if (currentMood) {
@@ -49,7 +49,12 @@ useEffect(() => {
 
     if (loading) {
         return (
-            <div className="loading-container" />
+            <div className="loading-container">
+                <CircularProgress size={60} />
+                <Typography variant="h6" style={{ marginTop: 20 }}>
+                    Loading movie details...
+                </Typography>
+            </div>
         );
     }
 
@@ -67,7 +72,7 @@ useEffect(() => {
     if (!selectedMovie) return null;
 
     const backdropUrl = selectedMovie.backdrop_path
-        ? `https://image.tmdb.org/t/p/original${selectedMovie.backdrop_path}`
+        ? `https://image.tmdb.org/t/p/w1280${selectedMovie.backdrop_path}`
         : null;
 
     const formatRuntime = (minutes) => {
@@ -97,8 +102,14 @@ useEffect(() => {
                     {/* Poster */}
                     <div>
                         <img
-                            src={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
+                            src={`https://image.tmdb.org/t/p/w342${selectedMovie.poster_path}`}
                             alt={selectedMovie.title}
+                            loading="lazy"
+                            onLoad={() => setImageLoaded(true)}
+                            style={{
+                                opacity: imageLoaded ? 1 : 0,
+                                transition: 'opacity 0.3s ease-in-out'
+                            }}
                             className="movie-poster"
                         />
                     </div>

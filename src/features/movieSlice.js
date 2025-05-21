@@ -21,7 +21,15 @@ export const fetchPopularMovies = createAsyncThunk(
     'movies/fetchPopular',
     async (page, { rejectWithValue }) => {
         try {
+            // Check cache first
+            const cachedMovies = getCachedData(`popular_movies_${page}`);
+            if (cachedMovies) {
+                return cachedMovies;
+            }
+
             const response = await getPopularMovies(page);
+            // Cache the response
+            setCachedData(`popular_movies_${page}`, response);
             return response;
         } catch (error) {
             return rejectWithValue(handleAsyncError(error));
@@ -69,7 +77,15 @@ export const fetchMovieDetails = createAsyncThunk(
     'movies/fetchDetails',
     async (movieId, { rejectWithValue }) => {
         try {
+            // Check cache first
+            const cachedMovie = getCachedData(`movie_${movieId}`);
+            if (cachedMovie) {
+                return cachedMovie;
+            }
+
             const response = await getMovieDetails(movieId);
+            // Cache the response
+            setCachedData(`movie_${movieId}`, response);
             return response;
         } catch (error) {
             return rejectWithValue(handleAsyncError(error));
@@ -88,6 +104,37 @@ export const fetchPersonDetails = createAsyncThunk(
         }
     }
 );
+
+// Cache management
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+const getCachedData = (key) => {
+    try {
+        const item = localStorage.getItem(key);
+        if (!item) return null;
+
+        const { value, timestamp } = JSON.parse(item);
+        if (Date.now() - timestamp > CACHE_DURATION) {
+            localStorage.removeItem(key);
+            return null;
+        }
+        return value;
+    } catch {
+        return null;
+    }
+};
+
+const setCachedData = (key, value) => {
+    try {
+        const item = {
+            value,
+            timestamp: Date.now(),
+        };
+        localStorage.setItem(key, JSON.stringify(item));
+    } catch (error) {
+        console.error('Cache storage error:', error);
+    }
+};
 
 // Load watchlist from localStorage
 const loadWatchlist = () => {

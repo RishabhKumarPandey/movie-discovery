@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
-import HomePage from './pages/HomePage';
-import MovieDetailsPage from './pages/MovieDetailsPage';
-import FilteredMoviesPage from './pages/FilteredMoviesPage';
-import WatchlistPage from './pages/WatchlistPage';
-import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { CssBaseline, ThemeProvider, createTheme, CircularProgress } from '@mui/material';
+
+// Lazy load components
+const HomePage = lazy(() => import('./pages/HomePage'));
+const MovieDetailsPage = lazy(() => import('./pages/MovieDetailsPage'));
+const FilteredMoviesPage = lazy(() => import('./pages/FilteredMoviesPage'));
+const WatchlistPage = lazy(() => import('./pages/WatchlistPage'));
+
+// Loading component
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh' 
+  }}>
+    <CircularProgress />
+  </div>
+);
 
 const theme = createTheme({
   palette: {
@@ -63,6 +77,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Router>
+          <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/movies/feel-good" element={<HomePage />} />
@@ -72,6 +87,7 @@ function App() {
             <Route path="/filtered" element={<FilteredMoviesPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
           </Routes>
+          </Suspense>
         </Router>
       </ThemeProvider>
     </Provider>
